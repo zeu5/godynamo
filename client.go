@@ -16,6 +16,7 @@ const tagName = "dynamodb"
 const partitionKeyTag string = "paritionkey"
 const sortKeyTag string = "sortkey"
 
+// Config struct to provide initial configuration for the connection
 type Config struct {
 	Timeout time.Duration
 }
@@ -24,19 +25,22 @@ var defaultConfig = &Config{
 	Timeout: time.Second * 10,
 }
 
+// Client struct that holds the connection objects
 type Client struct {
 	Svc     *dynamodb.DynamoDB
 	timeout time.Duration
 }
 
-func (s *Client) Table(t TableItem) *Table {
+// Table function to fetch the abstract Table interface for further interaction
+func (s *Client) Table(t string) *Table {
 	return &Table{
 		client:    s,
-		tableName: t.TableName(),
+		tableName: t,
 	}
 }
 
-func (s *Client) CreateTable(t TableItem) error {
+// CreateTable function to create a new table in Dynamo. Throws error if it already exists
+func (s *Client) CreateTable(name string, t interface{}) error {
 	var paritionKey string
 	var partitionKeyKind reflect.Kind
 	var sortKey string
@@ -88,7 +92,7 @@ func (s *Client) CreateTable(t TableItem) error {
 	_, err := s.Svc.CreateTable(&dynamodb.CreateTableInput{
 		AttributeDefinitions: attrs,
 		KeySchema:            keys,
-		TableName:            aws.String(t.TableName()),
+		TableName:            aws.String(name),
 		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
 			ReadCapacityUnits:  aws.Int64(10),
 			WriteCapacityUnits: aws.Int64(10),
@@ -97,11 +101,13 @@ func (s *Client) CreateTable(t TableItem) error {
 	return err
 }
 
+// Ctx function returns the context with the specified Timeout value
 func (s *Client) Ctx() context.Context {
 	ctx, _ := context.WithTimeout(context.Background(), s.timeout)
 	return ctx
 }
 
+// NewClient function to create a Client with the given Config
 func NewClient(config *Config) *Client {
 	if config == nil {
 		config = defaultConfig
@@ -110,6 +116,7 @@ func NewClient(config *Config) *Client {
 	return NewClientWithSession(session.Must(session.NewSession()), config)
 }
 
+// NewClientWithSession function to create a client with the provided aws sessio object
 func NewClientWithSession(s *session.Session, config *Config) *Client {
 	if config == nil {
 		config = defaultConfig

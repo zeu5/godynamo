@@ -14,10 +14,6 @@ type Todo struct {
 	Item string `json:"item,omitempty"`
 }
 
-func (t *Todo) TableName() string {
-	return "todo"
-}
-
 func main() {
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region:   aws.String("ap-southeast-1"),
@@ -25,27 +21,27 @@ func main() {
 	}))
 	c := godynamo.NewClientWithSession(sess, nil)
 
-	// err := c.CreateTable(&Todo{})
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	os.Exit(1)
-	// }
-
-	t := &Todo{
-		Item: "Nonsense",
-		ID:   "3",
+	err := c.CreateTable("todo", &Todo{})
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	err := c.Table(t).Put(t)
+	t := &Todo{
+		Item: "First todo",
+		ID:   "1",
+	}
+
+	err := c.Table("todo").Put().Bind(t).Execute()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	t1 := &Todo{
-		ID: "3",
+		ID: "1",
 	}
-	err = c.Table(t1).Get(t1)
+	err = c.Table("todo").Get().Bind(t1).Execute(t1)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
