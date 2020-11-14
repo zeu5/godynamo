@@ -32,7 +32,7 @@ func main() {
 		ID:   "1",
 	}
 
-	err := c.Table("todo").Put().Bind(t).Execute()
+	err = c.Table("todo").PutItem().Bind(t).Execute()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -41,10 +41,11 @@ func main() {
 	t1 := &Todo{
 		ID: "1",
 	}
-	err = c.Table("todo").Get().Bind(t1).Execute(t1)
+	err = c.Table("todo").GetItem().Bind(t1).Execute(t1)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 	fmt.Println(t1)
+
 }
